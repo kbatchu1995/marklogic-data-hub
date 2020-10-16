@@ -6,6 +6,7 @@ import {
   Tooltip,
   Icon,
   Select,
+  Tabs,
 } from 'antd';
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './advanced-settings-dialog.module.scss';
@@ -14,10 +15,12 @@ import { AdvancedSettingsMessages } from '../../config/messages.config';
 import { UserContext } from '../../util/user-context';
 import Axios from 'axios';
 import { MLButton, MLTooltip } from '@marklogic/design-system';
+import './advanced-settings-dialog.scss';
 
 
 const { TextArea } = Input;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 const AdvancedSettingsDialog = (props) => {
   const tooltips = Object.assign({}, AdvancedSettings, props.tooltipsData);
@@ -478,6 +481,10 @@ const AdvancedSettingsDialog = (props) => {
     },
   };
 
+  const handleTab = (key) => {
+    console.log('handleTab', key);
+  }
+
   const sourceDbOptions = databaseOptions.map(d => <Option data-testid={`sourceDbOptions-${d}`} key={d}>{d}</Option>);
   const targetDbOptions = databaseOptions.map(d => <Option data-testid={`targetDbOptions-${d}`} key={d}>{d}</Option>);
 
@@ -495,321 +502,339 @@ const AdvancedSettingsDialog = (props) => {
     maskClosable={false}
     destroyOnClose={true}
   >
-    <p className={styles.title}>Advanced Step Settings</p>
-    <p className={styles.stepName}>{props.stepData.name}</p><br/>
-    <div className={styles.newDataForm}>
-      <Form {...formItemLayout} onSubmit={handleSubmit} colon={true}>
-        {isCustomIngestion ? <Form.Item
-            label={<span>Step Definition Name</span>}
-            labelAlign="left"
-            className={styles.formItem}>
-            <div >{stepDefinitionName}</div>
-        </Form.Item> : null }
-        { usesSourceDatabase ? <Form.Item
-          label={<span>Source Database</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Select
-            id="sourceDatabase"
-            placeholder="Please select source database"
-            value={sourceDatabase}
-            onChange={handleSourceDatabase}
-            disabled={!canReadWrite}
-            className={styles.inputWithTooltip}
-            aria-label="sourceDatabase-select"
-          >
-            {sourceDbOptions}
-          </Select>
-          <div className={styles.selectTooltip}>
-            <MLTooltip title={tooltips.sourceDatabase}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item> : null
-        }<Form.Item
-          label={<span>Target Database</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Select
-            id="targetDatabase"
-            placeholder="Please select target database"
-            value={targetDatabase}
-            onChange={handleTargetDatabase}
-            disabled={!canReadWrite}
-            className={styles.inputWithTooltip}
-            aria-label="targetDatabase-select"
-          >
-            {targetDbOptions}
-          </Select>
-          <div className={styles.selectTooltip}>
-            <MLTooltip title={tooltips.targetDatabase}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item>
-        <Form.Item
-          label={<span>Target Collections</span>}
-          labelAlign="left"
-          className={styles.formItemTargetCollections}
-        >
-          <Select
-            id="additionalColl"
-            mode="tags"
-            style={{width: '100%'}}
-            placeholder="Please add target collections"
-            value={additionalCollections}
-            disabled={!canReadWrite}
-            onChange={handleAddColl}
-            className={styles.inputWithTooltip}
-            aria-label="additionalColl-select"
-          >
-            {additionalCollections.map((col) => {
-              return <Option value={col} key={col} label={col}>{col}</Option>;
-            })}
-          </Select>
-          <div className={styles.inputTooltip}>
-            <MLTooltip title={tooltips.additionalCollections}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item>
-        <Form.Item
-          label={<span className={styles.defaultCollectionsLabel}>Default Collections</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-        <div className={styles.defaultCollections}>{defaultCollections.map((collection, i) => {return <div data-testid={`defaultCollections-${collection}`} key={i}>{collection}</div>})}</div>
-        </Form.Item>
-        <Form.Item
-          label={<span>Target Permissions</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Input
-            id="targetPermissions"
-            placeholder="Please enter target permissions"
-            value={targetPermissions}
-            onChange={handleChange}
-            disabled={!canReadWrite}
-            className={styles.inputWithTooltip}
-          />
-          <div className={styles.inputTooltip}>
-            <MLTooltip title={tooltips.targetPermissions}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-          <div className={styles.validationError}>
-              {permissionValidationError}
-          </div>
-        </Form.Item>
-        { usesTargetFormat ? <Form.Item
-          label={<span>Target Format</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Select
-            id="targetFormat"
-            placeholder="Please select target format"
-            value={targetFormat}
-            onChange={handleTargetFormat}
-            disabled={!canReadWrite}
-            className={styles.inputWithTooltip}
-            aria-label="targetFormat-select"
-          >
-            {targetFormatOptions}
-          </Select>
-          <div className={styles.inputTooltip}>
-            <MLTooltip title={tooltips.targetFormat} placement={'right'}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item> : null }
-        <Form.Item
-          label={<span>Provenance Granularity</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Select
-            id="provGranularity"
-            placeholder="Please select provenance granularity"
-            value={provGranularity}
-            onChange={handleProvGranularity}
-            disabled={!canReadWrite}
-            className={styles.inputWithTooltip}
-            aria-label="provGranularity-select"
-          >
-            {provGranOpts}
-          </Select>
-          <div className={styles.selectTooltip}>
-            <MLTooltip title={tooltips.provGranularity} placement={'right'}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item>
-          {   stepType === 'mapping' ? <Form.Item
-              label={<span>Entity Validation</span>}
-              labelAlign="left"
-              className={styles.formItem}
-          >
-          <Select
-              id="validateEntity"
-              placeholder="Please select Entity Validation"
-              value={validateEntity}
-              onChange={handleValidateEntity}
-              disabled={!canReadWrite}
-              className={styles.inputWithTooltip}
-              aria-label="validateEntity-select"
-              >
-              {valEntityOpts}
-          </Select>
-              <div className={styles.selectTooltip}>
-                  <MLTooltip title={tooltips.validateEntity} placement={'right'}>
+    <div className={styles.settingsContainer}>
+      <header>
+          <div className={styles.title}>Mapping Step Settings</div>
+          {/* <div className={styles.stepName}>{props.stepData.name}</div> */}
+      </header>
+      <div className={styles.tabs}>
+        <Tabs defaultActiveKey="1" onChange={handleTab} animated={false} tabBarGutter={10}>
+          <TabPane tab="Basic" key="1">
+
+            Basic Tab Content
+
+          </TabPane>
+          <TabPane tab="Advanced" key="2">
+
+            <div className={styles.newDataForm}>
+              <Form {...formItemLayout} onSubmit={handleSubmit} colon={true}>
+                {isCustomIngestion ? <Form.Item
+                    label={<span>Step Definition Name</span>}
+                    labelAlign="left"
+                    className={styles.formItem}>
+                    <div >{stepDefinitionName}</div>
+                </Form.Item> : null }
+                { usesSourceDatabase ? <Form.Item
+                  label={<span>Source Database</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Select
+                    id="sourceDatabase"
+                    placeholder="Please select source database"
+                    value={sourceDatabase}
+                    onChange={handleSourceDatabase}
+                    disabled={!canReadWrite}
+                    className={styles.inputWithTooltip}
+                    aria-label="sourceDatabase-select"
+                  >
+                    {sourceDbOptions}
+                  </Select>
+                  <div className={styles.selectTooltip}>
+                    <MLTooltip title={tooltips.sourceDatabase}>
                       <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-                  </MLTooltip>
-              </div>
-          </Form.Item> : ''}
-        <Form.Item
-          label={<span>Batch Size</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <Input
-              id="batchSize"
-              placeholder="Please enter batch size"
-              value={batchSize}
-              onChange={handleChange}
-              disabled={!canReadWrite}
-              className={styles.inputBatchSize}
-          />
-          <div className={styles.inputTooltip}>
-            <MLTooltip title={tooltips.batchSize} placement={'right'}>
-                <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-        </Form.Item>
-        { usesHeaders ? <>
-        <div className={styles.textareaTooltip}>
-          <MLTooltip title={tooltips.headers}>
-            <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-          </MLTooltip>
-        </div>
-        <Form.Item
-          label={<span>Header Content</span>}
-          labelAlign="left"
-          className={styles.formItem}
-        >
-          <TextArea
-            id="headers"
-            placeholder="Please enter header content"
-            value={headers}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            disabled={!canReadWrite}
-            className={styles.textarea}
-            rows={6}
-            aria-label="headers-textarea"
-            style={!headersValid ? {border: 'solid 1px #C00'} : {}}
-          />
-          { !headersValid ? <div className={styles.invalid}>{invalidJSONMessage}</div> : null }
-        </Form.Item></> : null }
-        <Form.Item
-          label={<span>
-            <Icon
-              type="right"
-              className={styles.rightArrow}
-              onClick={() => setProcessorsExpanded(!processorsExpanded)}
-              rotate={processorsExpanded ? 90 : 0}
-            />
-            <span className={styles.expandLabel} onClick={() => setProcessorsExpanded(!processorsExpanded)}>Processors</span>
-          </span>}
-          labelAlign="left"
-          className={styles.formItem}
-          colon={false}
-        />
-        { processorsExpanded ? <div className={styles.expandContainer}>
-          <div className={styles.textareaExpandTooltip}>
-            <MLTooltip title={tooltips.processors}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-          <TextArea
-            id="processors"
-            placeholder="Please enter processor content"
-            value={processors}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            disabled={!canReadWrite}
-            className={styles.textareaExpand}
-            rows={6}
-            aria-label="processors-textarea"
-            style={!processorsValid ? {border: 'solid 1px #C00'} : {}}
-          />
-          { !processorsValid ? <div className={styles.invalidExpand}>{invalidJSONMessage}</div> : null }
-        </div> : ''}
-        <Form.Item
-          label={<span>
-            <Icon
-              type="right"
-              className={styles.rightArrow}
-              onClick={() => setCustomHookExpanded(!customHookExpanded)}
-              rotate={customHookExpanded ? 90 : 0}
-            />
-            <span className={styles.expandLabel} onClick={() => setCustomHookExpanded(!customHookExpanded)}>Custom Hook</span>
-          </span>}
-          labelAlign="left"
-          className={styles.formItem}
-          colon={false}
-        />
-        { customHookExpanded ? <div className={styles.expandContainer}>
-          <div className={styles.textareaExpandTooltip}>
-            <MLTooltip title={tooltips.customHook}>
-              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-            </MLTooltip>
-          </div>
-          <TextArea
-            id="customHook"
-            placeholder="Please enter custom hook content"
-            value={customHook}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            disabled={!canReadWrite}
-            className={styles.textareaExpand}
-            rows={6}
-            aria-label="customHook-textarea"
-            style={!customHookValid ? {border: 'solid 1px #C00'} : {}}
-          />
-          { !customHookValid ? <div className={styles.invalidExpand}>{invalidJSONMessage}</div> : null }
-        </div> : ''}
-        { stepType ==='custom' ? <Form.Item
-            label={<span>Additional Settings</span>}
-            labelAlign="left"
-            className={styles.formItem}
-        >
-            <TextArea
-                id="additionalSettings"
-                placeholder="Please enter additional settings"
-                value={additionalSettings}
-                disabled={!canReadWrite}
-                className={styles.textarea}
-                rows={6}
-                aria-label="options-textarea"
-            />
-            <div className={styles.selectTooltip}>
-                <MLTooltip title={props.tooltipsData.additionalSettings} placement={'right'}>
+                    </MLTooltip>
+                  </div>
+                </Form.Item> : null
+                }<Form.Item
+                  label={<span>Target Database</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Select
+                    id="targetDatabase"
+                    placeholder="Please select target database"
+                    value={targetDatabase}
+                    onChange={handleTargetDatabase}
+                    disabled={!canReadWrite}
+                    className={styles.inputWithTooltip}
+                    aria-label="targetDatabase-select"
+                  >
+                    {targetDbOptions}
+                  </Select>
+                  <div className={styles.selectTooltip}>
+                    <MLTooltip title={tooltips.targetDatabase}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                </Form.Item>
+                <Form.Item
+                  label={<span>Target Collections</span>}
+                  labelAlign="left"
+                  className={styles.formItemTargetCollections}
+                >
+                  <Select
+                    id="additionalColl"
+                    mode="tags"
+                    style={{width: '100%'}}
+                    placeholder="Please add target collections"
+                    value={additionalCollections}
+                    disabled={!canReadWrite}
+                    onChange={handleAddColl}
+                    className={styles.inputWithTooltip}
+                    aria-label="additionalColl-select"
+                  >
+                    {additionalCollections.map((col) => {
+                      return <Option value={col} key={col} label={col}>{col}</Option>;
+                    })}
+                  </Select>
+                  <div className={styles.inputTooltip}>
+                    <MLTooltip title={tooltips.additionalCollections}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                </Form.Item>
+                <Form.Item
+                  label={<span className={styles.defaultCollectionsLabel}>Default Collections</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                <div className={styles.defaultCollections}>{defaultCollections.map((collection, i) => {return <div data-testid={`defaultCollections-${collection}`} key={i}>{collection}</div>})}</div>
+                </Form.Item>
+                <Form.Item
+                  label={<span>Target Permissions</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Input
+                    id="targetPermissions"
+                    placeholder="Please enter target permissions"
+                    value={targetPermissions}
+                    onChange={handleChange}
+                    disabled={!canReadWrite}
+                    className={styles.inputWithTooltip}
+                  />
+                  <div className={styles.inputTooltip}>
+                    <MLTooltip title={tooltips.targetPermissions}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                  <div className={styles.validationError}>
+                      {permissionValidationError}
+                  </div>
+                </Form.Item>
+                { usesTargetFormat ? <Form.Item
+                  label={<span>Target Format</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Select
+                    id="targetFormat"
+                    placeholder="Please select target format"
+                    value={targetFormat}
+                    onChange={handleTargetFormat}
+                    disabled={!canReadWrite}
+                    className={styles.inputWithTooltip}
+                    aria-label="targetFormat-select"
+                  >
+                    {targetFormatOptions}
+                  </Select>
+                  <div className={styles.inputTooltip}>
+                    <MLTooltip title={tooltips.targetFormat} placement={'right'}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                </Form.Item> : null }
+                <Form.Item
+                  label={<span>Provenance Granularity</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Select
+                    id="provGranularity"
+                    placeholder="Please select provenance granularity"
+                    value={provGranularity}
+                    onChange={handleProvGranularity}
+                    disabled={!canReadWrite}
+                    className={styles.inputWithTooltip}
+                    aria-label="provGranularity-select"
+                  >
+                    {provGranOpts}
+                  </Select>
+                  <div className={styles.selectTooltip}>
+                    <MLTooltip title={tooltips.provGranularity} placement={'right'}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                </Form.Item>
+                  {   stepType === 'mapping' ? <Form.Item
+                      label={<span>Entity Validation</span>}
+                      labelAlign="left"
+                      className={styles.formItem}
+                  >
+                  <Select
+                      id="validateEntity"
+                      placeholder="Please select Entity Validation"
+                      value={validateEntity}
+                      onChange={handleValidateEntity}
+                      disabled={!canReadWrite}
+                      className={styles.inputWithTooltip}
+                      aria-label="validateEntity-select"
+                      >
+                      {valEntityOpts}
+                  </Select>
+                      <div className={styles.selectTooltip}>
+                          <MLTooltip title={tooltips.validateEntity} placement={'right'}>
+                              <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                          </MLTooltip>
+                      </div>
+                  </Form.Item> : ''}
+                <Form.Item
+                  label={<span>Batch Size</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <Input
+                      id="batchSize"
+                      placeholder="Please enter batch size"
+                      value={batchSize}
+                      onChange={handleChange}
+                      disabled={!canReadWrite}
+                      className={styles.inputBatchSize}
+                  />
+                  <div className={styles.inputTooltip}>
+                    <MLTooltip title={tooltips.batchSize} placement={'right'}>
+                        <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                </Form.Item>
+                { usesHeaders ? <>
+                <div className={styles.textareaTooltip}>
+                  <MLTooltip title={tooltips.headers}>
                     <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
-                </MLTooltip>
+                  </MLTooltip>
+                </div>
+                <Form.Item
+                  label={<span>Header Content</span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                >
+                  <TextArea
+                    id="headers"
+                    placeholder="Please enter header content"
+                    value={headers}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={!canReadWrite}
+                    className={styles.textarea}
+                    rows={6}
+                    aria-label="headers-textarea"
+                    style={!headersValid ? {border: 'solid 1px #C00'} : {}}
+                  />
+                  { !headersValid ? <div className={styles.invalid}>{invalidJSONMessage}</div> : null }
+                </Form.Item></> : null }
+                <Form.Item
+                  label={<span>
+                    <Icon
+                      type="right"
+                      className={styles.rightArrow}
+                      onClick={() => setProcessorsExpanded(!processorsExpanded)}
+                      rotate={processorsExpanded ? 90 : 0}
+                    />
+                    <span className={styles.expandLabel} onClick={() => setProcessorsExpanded(!processorsExpanded)}>Processors</span>
+                  </span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                  colon={false}
+                />
+                { processorsExpanded ? <div className={styles.expandContainer}>
+                  <div className={styles.textareaExpandTooltip}>
+                    <MLTooltip title={tooltips.processors}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                  <TextArea
+                    id="processors"
+                    placeholder="Please enter processor content"
+                    value={processors}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={!canReadWrite}
+                    className={styles.textareaExpand}
+                    rows={6}
+                    aria-label="processors-textarea"
+                    style={!processorsValid ? {border: 'solid 1px #C00'} : {}}
+                  />
+                  { !processorsValid ? <div className={styles.invalidExpand}>{invalidJSONMessage}</div> : null }
+                </div> : ''}
+                <Form.Item
+                  label={<span>
+                    <Icon
+                      type="right"
+                      className={styles.rightArrow}
+                      onClick={() => setCustomHookExpanded(!customHookExpanded)}
+                      rotate={customHookExpanded ? 90 : 0}
+                    />
+                    <span className={styles.expandLabel} onClick={() => setCustomHookExpanded(!customHookExpanded)}>Custom Hook</span>
+                  </span>}
+                  labelAlign="left"
+                  className={styles.formItem}
+                  colon={false}
+                />
+                { customHookExpanded ? <div className={styles.expandContainer}>
+                  <div className={styles.textareaExpandTooltip}>
+                    <MLTooltip title={tooltips.customHook}>
+                      <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                    </MLTooltip>
+                  </div>
+                  <TextArea
+                    id="customHook"
+                    placeholder="Please enter custom hook content"
+                    value={customHook}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={!canReadWrite}
+                    className={styles.textareaExpand}
+                    rows={6}
+                    aria-label="customHook-textarea"
+                    style={!customHookValid ? {border: 'solid 1px #C00'} : {}}
+                  />
+                  { !customHookValid ? <div className={styles.invalidExpand}>{invalidJSONMessage}</div> : null }
+                </div> : ''}
+                { stepType ==='custom' ? <Form.Item
+                    label={<span>Additional Settings</span>}
+                    labelAlign="left"
+                    className={styles.formItem}
+                >
+                    <TextArea
+                        id="additionalSettings"
+                        placeholder="Please enter additional settings"
+                        value={additionalSettings}
+                        disabled={!canReadWrite}
+                        className={styles.textarea}
+                        rows={6}
+                        aria-label="options-textarea"
+                    />
+                    <div className={styles.selectTooltip}>
+                        <MLTooltip title={props.tooltipsData.additionalSettings} placement={'right'}>
+                            <Icon type="question-circle" className={styles.questionCircle} theme="filled"/>
+                        </MLTooltip>
+                    </div>
+                </Form.Item> : null
+                }
+                <Form.Item className={styles.submitButtonsForm}>
+                  <div className={styles.submitButtons}>
+                    <MLButton data-testid={`${props.stepData.name}-cancel-settings`} onClick={() => onCancel()}>Cancel</MLButton>&nbsp;&nbsp;
+                    <MLButton id={'saveButton'} data-testid={`${props.stepData.name}-save-settings`} type="primary" htmlType="submit" onClick={handleSubmit} disabled={!canReadWrite || !isFormValid()}>Save</MLButton>
+                  </div>
+                </Form.Item>
+              </Form>
             </div>
-        </Form.Item> : null
-        }
-        <Form.Item className={styles.submitButtonsForm}>
-          <div className={styles.submitButtons}>
-            <MLButton data-testid={`${props.stepData.name}-cancel-settings`} onClick={() => onCancel()}>Cancel</MLButton>&nbsp;&nbsp;
-            <MLButton id={'saveButton'} data-testid={`${props.stepData.name}-save-settings`} type="primary" htmlType="submit" onClick={handleSubmit} disabled={!canReadWrite || !isFormValid()}>Save</MLButton>
-          </div>
-        </Form.Item>
-      </Form>
+
+          </TabPane>
+        </Tabs>
+      </div>
+
     </div>
     {deleteConfirmation}
   </Modal>;
